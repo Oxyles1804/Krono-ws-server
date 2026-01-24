@@ -16,7 +16,7 @@ wss.on("connection", (ws) => {
     try {
       data = JSON.parse(message.toString());
     } catch {
-      console.log("❌ Message invalide");
+      console.log("❌ Message invalide :", message.toString());
       return;
     }
 
@@ -76,15 +76,40 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    // ⚠️ Les messages START_SEQUENCE / GO_NOW seront traités à l'étape 2
+    // ====== START_SEQUENCE ======
+    if (data.type === "START_SEQUENCE") {
+      const room = rooms[ws.roomId];
+      if (!room) return;
+
+      room.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: "START_SEQUENCE" }));
+        }
+      });
+      console.log("🚦 START_SEQUENCE envoyé dans la room :", ws.roomId);
+      return;
+    }
+
+    // ====== GO_NOW ======
+    if (data.type === "GO_NOW") {
+      const room = rooms[ws.roomId];
+      if (!room) return;
+
+      room.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: "GO_NOW" }));
+        }
+      });
+      console.log("🏁 GO_NOW envoyé dans la room :", ws.roomId);
+      return;
+    }
   });
 
   ws.on("close", () => {
     const roomId = ws.roomId;
     if (!roomId || !rooms[roomId]) return;
 
-    rooms[roomId].clients =
-      rooms[roomId].clients.filter(c => c !== ws);
+    rooms[roomId].clients = rooms[roomId].clients.filter(c => c !== ws);
 
     console.log("❌ Client quitté :", roomId);
 
