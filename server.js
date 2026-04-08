@@ -1,8 +1,11 @@
 // server.js
 const WebSocket = require("ws");
 
-const wss = new WebSocket.Server({ port: 8080 });
-console.log("✅ Serveur WebSocket lancé sur ws://0.0.0.0:8080");
+// Render fournit le port via l'environnement
+const PORT = process.env.PORT || 8080;
+const wss = new WebSocket.Server({ port: PORT });
+
+console.log(`✅ Serveur WebSocket lancé sur le port ${PORT}`);
 
 const clients = new Set();
 
