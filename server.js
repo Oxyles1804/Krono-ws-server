@@ -1,12 +1,12 @@
 // server.js
 const WebSocket = require("ws");
 
-// Render fournit le port via l'environnement
-const PORT = process.env.PORT || 8080;
-const wss = new WebSocket.Server({ port: PORT });
+// Serveur WebSocket simple, écoute le port par défaut (Render gère l'URL publique)
+const wss = new WebSocket.Server({ port: 8080 });
 
-console.log(`✅ Serveur WebSocket lancé sur le port ${PORT}`);
+console.log("✅ Serveur WebSocket lancé");
 
+// Stockage des clients connectés
 const clients = new Set();
 
 wss.on("connection", (ws) => {
@@ -17,7 +17,7 @@ wss.on("connection", (ws) => {
     const msg = message.toString();
     console.log("📩 Message reçu :", msg);
 
-    // Broadcast à tous les autres clients
+    // Envoyer le message à tous les autres clients
     clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(msg);
