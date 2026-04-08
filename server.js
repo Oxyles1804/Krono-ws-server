@@ -1,14 +1,15 @@
 // server.js
 const WebSocket = require("ws");
 
-// Serveur WebSocket simple, écoute le port par défaut (Render gère l'URL publique)
-const wss = new WebSocket.Server({ port: 8080 });
+// Serveur WebSocket minimal pour Render
+const wss = new WebSocket.Server({ noServer: true }); // Render gère l'URL publique
 
-console.log("✅ Serveur WebSocket lancé");
+console.log("✅ Serveur WebSocket prêt");
 
 // Stockage des clients connectés
 const clients = new Set();
 
+// Gestion des connexions
 wss.on("connection", (ws) => {
   clients.add(ws);
   console.log("🔌 Nouveau client connecté");
@@ -17,7 +18,7 @@ wss.on("connection", (ws) => {
     const msg = message.toString();
     console.log("📩 Message reçu :", msg);
 
-    // Envoyer le message à tous les autres clients
+    // Broadcast à tous les autres clients
     clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(msg);
@@ -29,4 +30,17 @@ wss.on("connection", (ws) => {
     clients.delete(ws);
     console.log("❌ Client déconnecté");
   });
+});
+
+// Pour Render, il faut utiliser le serveur HTTP intégré
+const http = require("http");
+const server = http.createServer();
+server.on("upgrade", (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit("connection", ws, request);
+  });
+});
+
+server.listen(process.env.PORT || 3000, () => {
+  console.log(`🌐 Serveur HTTP + WebSocket lancé sur le port ${process.env.PORT || 3000}`);
 });
